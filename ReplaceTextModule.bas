@@ -11,7 +11,7 @@ Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As
         Dim curDoc As AcadDocument
         Set curDoc = Application.Documents.Open(fn)
         Set acDb = curDoc.Database
-        res = RepalceTxtInBlocks(oldstr, newStr, acDb)
+        res = RepalceTxtInBlocks(oldstr, newStr, acDb, layerName, txtheight, aligmentStyle, 完全匹配, 替换块内文字)
         If 替换属性块内属性 Then res = res + RepalceTxtInBlockAttributes(oldstr, newStr, acDb, 完全匹配)
         If res > 0 Then
             curDoc.SaveAs VBA.Replace(fn, ".dwg", "-" & Year(Now) & Month(Now) & Day(Now) & ".dwg")
@@ -25,7 +25,7 @@ Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As
         Set dbx = AcadApplication.GetInterfaceObject("ObjectDBX.AxDbDocument." & acadVer)
         dbx.Open fn
         Set acDb = dbx.Database
-        res = RepalceTxtInBlocks(oldstr, newStr, acDb)
+        res = RepalceTxtInBlocks(oldstr, newStr, acDb, layerName, txtheight, aligmentStyle, 完全匹配, 替换块内文字)
         If 替换属性块内属性 Then res = res + RepalceTxtInBlockAttributes(oldstr, newStr, acDb, 完全匹配)
         If res > 0 Then dbx.SaveAs VBA.Replace(fn, ".dwg", "-" & Year(Now) & Month(Now) & Day(Now) & ".dwg")
         Set acDb = Nothing: Set dbx = Nothing

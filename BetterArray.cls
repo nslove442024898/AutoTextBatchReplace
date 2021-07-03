@@ -728,11 +728,11 @@ Public Function FromExcelRange( _
         
         With FromRange.Parent
             If DetectLastColumn Then
-                EndColumn = .Cells.item(StartRow, .Columns.count).end(-4159).Column
+                EndColumn = .Cells.item(StartRow, .Columns.count).End(-4159).Column
             End If
             
             If DetectLastRow Then
-                EndRow = .Cells.item(.Rows.count, StartColumn).end(-4162).Row
+                EndRow = .Cells.item(.Rows.count, StartColumn).End(-4162).Row
             End If
             
             Me.Items = .Range(.Cells(StartRow, StartColumn), .Cells(EndRow, EndColumn)).Value

@@ -26,7 +26,8 @@ Public Sub MyCMD_µ¼³öVBA´úÂë()
     Dim path As String
     Dim directory As String
     Dim extension As String
-    Dim fso As New FileSystemObject
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
     directory = fso.GetParentFolderName(Application.VBE.ActiveVBProject.FileName)
     count = 0
     If Not fso.FolderExists(directory) Then

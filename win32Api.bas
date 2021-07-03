@@ -12,17 +12,15 @@ Attribute VB_Name = "win32Api"
 Public Function GetOpenFileName(文件类型 As Variant, 后缀名称 As Variant, 标题 As Variant, 多选 As Boolean) As Collection
     Dim isNewStartExcel As Boolean, ExcelApp As Object, fns As New Collection, openfiles As Variant
     On Error Resume Next
-    Set ExcelApp = GetObject(, "Excel.Application")
-    If Err <> 0 Then
-        Err.Clear
-        Set ExcelApp = CreateObject("Excel.Application")
-        If Err <> 0 Then
-            MsgBox "Could not start Excel!", vbExclamation
-        End If
-        isNewStartExcel = True
-    Else
-        isNewStartExcel = False
-    End If
+    '    Set ExcelApp = GetObject(, "Excel.Application")
+    '    If Err <> 0 Then
+    '        Err.Clear
+    Set ExcelApp = CreateObject("Excel.Application")
+    If Err <> 0 Then MsgBox "Could not start Excel!", vbExclamation
+    isNewStartExcel = True
+    '    Else
+    '        isNewStartExcel = False
+    '    End If
     '    ExcelApp.Visible = True
     '    Set wbkobj = ExcelApp.Workbooks.Add
     '    Set shtObj = wbkobj.Worksheets(1)
@@ -39,4 +37,13 @@ Public Function GetOpenFileName(文件类型 As Variant, 后缀名称 As Variant, 标题 A
     Else
         Set GetOpenFileName = Nothing
     End If
+End Function
+
+
+Public Function FileInUse(sFileName) As Boolean
+    On Error Resume Next
+    Open sFileName For Binary Access Read Lock Read As #1
+    Close #1
+    FileInUse = IIf(Err.Number > 0, True, False)
+    On Error GoTo 0
 End Function
