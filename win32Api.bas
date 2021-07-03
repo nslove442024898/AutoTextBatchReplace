@@ -1,44 +1,76 @@
 Attribute VB_Name = "win32Api"
-'expression.GetOpenFilename (FileFilter, FilterIndex, Title, ButtonText, MultiSelect)
-'expression：表示 Application 对象的变量。
-'参数
-'参数
-'名称    必需/可选   数据类型    说明
-'FileFilter  可选    Variant 指定文件筛选条件的字符串。
-'FilterIndex 可选    Variant 指定默认文件筛选条件的索引号，编号从 1 直到 FileFilter 中指定的筛选器编号。 如果此参数被省略或大于存在的筛选器数，使用的是第一个文件筛选器。
-'Title   可选    Variant 指定对话框的标题。 如果此参数被省略，标题为"打开"。
-'ButtonText  可选    Variant 仅限 Macintosh。
-'MultiSelect 可选    Variant 若为 True，允许选择多个文件名。 若为 False，仅允许选择一个文件名。 默认值为 False。
-Public Function GetOpenFileName(文件类型 As Variant, 后缀名称 As Variant, 标题 As Variant, 多选 As Boolean) As Collection
-    Dim isNewStartExcel As Boolean, ExcelApp As Object, fns As New Collection, openfiles As Variant
-    On Error Resume Next
-    '    Set ExcelApp = GetObject(, "Excel.Application")
-    '    If Err <> 0 Then
-    '        Err.Clear
-    Set ExcelApp = CreateObject("Excel.Application")
-    If Err <> 0 Then MsgBox "Could not start Excel!", vbExclamation
-    isNewStartExcel = True
-    '    Else
-    '        isNewStartExcel = False
-    '    End If
-    '    ExcelApp.Visible = True
-    '    Set wbkobj = ExcelApp.Workbooks.Add
-    '    Set shtObj = wbkobj.Worksheets(1)
-    openfiles = ExcelApp.GetOpenFileName(FileFilter:=(文件类型 & " (*" & 后缀名称 & "),*" & 后缀名称 & ", All Files (*.*),*.*"), Title:=标题, MultiSelect:=多选)
-    If isNewStartExcel Then
-        ExcelApp.Quit
-    End If
-    If openfiles <> False Then
-        Dim i As Long
-        For i = LBound(openfiles) To UBound(openfiles)
-            fns.Add openfiles(i)
-        Next
-        Set GetOpenFileName = fns
-    Else
-        Set GetOpenFileName = Nothing
-    End If
-End Function
 
+'================================================================
+' Source for using VBA with 64 bit and 32 bit office installs
+' http://blog.nkadesign.com/2013/vba-for-32-and-64-bit-systems/
+'
+'================================================================
+Option Explicit
+
+
+'Notice: Don't forget to set the OwnerHwnd property to the
+'handle of the calling window in order to bind the dialog
+'to the calling window.
+
+
+'//The Win32 API Functions///
+
+#If VBA7 Then
+    Public Declare PtrSafe Function GetOpenFileName Lib "comdlg32.dll" Alias "GetOpenFileNameA" (pOpenfilename As OPENFILENAME) As Boolean
+    Public Declare PtrSafe Function GetSaveFileName Lib "comdlg32.dll" Alias "GetSaveFileNameA" (pOpenfilename As OPENFILENAME) As Boolean
+    
+    Public Type OPENFILENAME
+        lStructSize As Long
+        hWndOwner As LongPtr
+        hInstance As LongPtr
+        lpstrFilter As String
+        lpstrCustomFilter As String
+        nMaxCustFilter As Long
+        nFilterIndex As Long
+        lpstrFile As String
+        nMaxFile As Long
+        lpstrFileTitle As String
+        nMaxFileTitle As Long
+        lpstrInitialDir As String
+        lpstrTitle As String
+        flags As Long
+        nFileOffset As Integer
+        nFileExtension As Integer
+        lpstrDefExt As String
+        lCustData As Long
+        lpfnHook As LongPtr
+        lpTemplateName As String
+    End Type
+    
+    
+#Else
+    Public Declare PtrSafe Function GetOpenFileName Lib "comdlg32.dll" Alias "GetOpenFileNameA" (pOpenfilename As OPENFILENAME) As Boolean
+    
+    Public Declare PtrSafe Function GetSaveFileName Lib "comdlg32.dll" Alias "GetSaveFileNameA" (pOpenfilename As OPENFILENAME) As Boolean
+    
+    Public Type OPENFILENAME
+        lStructSize As Long
+        hWndOwner As Long
+        hInstance As Long
+        lpstrFilter As String
+        lpstrCustomFilter As String
+        nMaxCustFilter As Long
+        nFilterIndex As Long
+        lpstrFile As String
+        nMaxFile As Long
+        lpstrFileTitle As String
+        nMaxFileTitle As Long
+        lpstrInitialDir As String
+        lpstrTitle As String
+        flags As Long
+        nFileOffset As Integer
+        nFileExtension As Integer
+        lpstrDefExt As String
+        lCustData As Long
+        lpfnHook As Long
+        lpTemplateName As String
+    End Type
+#End If
 
 Public Function FileInUse(sFileName) As Boolean
     On Error Resume Next

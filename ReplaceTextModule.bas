@@ -5,7 +5,12 @@ Option Explicit
 Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As String, Optional 开图替换 As Boolean = False, Optional layerName As String = vbNullString, _
         Optional txtheight As Double = 0#, Optional aligmentStyle As AutoCAD.AcAlignment = 0, Optional 完全匹配 As Boolean = False, Optional 替换块内文字 As Boolean = False, Optional 替换属性块内属性 As Boolean = False) As Long
     'AcadApplication.Preferences.OpenSave.SaveAsType = ac2013_dwg
-    Dim acDb As AcadDatabase, res As Long
+    Dim acDb As AcadDatabase, res As Long, fso As Object 'FileSystemObject '
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    '备份文件
+    Dim fnbak  As String
+    fnbak = VBA.Replace(fn, ".dwg", "-" & Year(Now) & Month(Now) & Day(Now) & ".bak")
+    fso.CopyFile fn, fnbak, True
     
     If 开图替换 Then
         Dim curDoc As AcadDocument
@@ -14,9 +19,10 @@ Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As
         res = RepalceTxtInBlocks(oldstr, newStr, acDb, layerName, txtheight, aligmentStyle, 完全匹配, 替换块内文字)
         If 替换属性块内属性 Then res = res + RepalceTxtInBlockAttributes(oldstr, newStr, acDb, 完全匹配)
         If res > 0 Then
-            curDoc.SaveAs VBA.Replace(fn, ".dwg", "-" & Year(Now) & Month(Now) & Day(Now) & ".dwg")
+            curDoc.Close True, fn
+        Else
+            fso.DeleteFile fnbak, True
         End If
-        curDoc.Close False
         Set acDb = Nothing: Set curDoc = Nothing
         替换文件内部文字主函数 = res
     Else
@@ -27,10 +33,11 @@ Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As
         Set acDb = dbx.Database
         res = RepalceTxtInBlocks(oldstr, newStr, acDb, layerName, txtheight, aligmentStyle, 完全匹配, 替换块内文字)
         If 替换属性块内属性 Then res = res + RepalceTxtInBlockAttributes(oldstr, newStr, acDb, 完全匹配)
-        If res > 0 Then dbx.SaveAs VBA.Replace(fn, ".dwg", "-" & Year(Now) & Month(Now) & Day(Now) & ".dwg")
+        If res > 0 Then dbx.SaveAs fn Else fso.DeleteFile fnbak, True
         Set acDb = Nothing: Set dbx = Nothing
         替换文件内部文字主函数 = res
     End If
+    Set fso = Nothing
     'Shell "explorer.exe " & VBA.Chr(34) & bfd.Self.path & VBA.Chr(34), 1
 End Function
 
