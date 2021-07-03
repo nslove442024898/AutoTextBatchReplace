@@ -21,6 +21,7 @@ Public Function 替换文件内部文字主函数(fn As String, oldstr As String, newStr As
         If res > 0 Then
             curDoc.Close True, fn
         Else
+            curDoc.Close False
             fso.DeleteFile fnbak, True
         End If
         Set acDb = Nothing: Set curDoc = Nothing
@@ -77,9 +78,9 @@ Private Function RepalceTxtinBlkDefs(ByRef blkdef As AcadBlock, oldstr As String
                         iReplaceCount = iReplaceCount + 1
                     End If
                     If txtheight <> 0 Then entInblk.Height = txtheight '改变文字高度
-                    If TypeOf entInblk Is IAcadText Then
-                        If aligmentStyle <> 0 Then entInblk.Alignment = aligmentStyle '改变文字对齐方式
-                    End If
+                    '                    If TypeOf entInblk Is IAcadText Then
+                    '                        If aligmentStyle <> 0 Then entInblk.Alignment = aligmentStyle '改变文字对齐方式
+                    '                    End If
                 End If
             Else
                 If entInblk.TextString Like "*" & oldstr & "*" Then
@@ -93,9 +94,9 @@ Private Function RepalceTxtinBlkDefs(ByRef blkdef As AcadBlock, oldstr As String
                         iReplaceCount = iReplaceCount + 1
                     End If
                     If txtheight <> 0 Then entInblk.Height = txtheight '改变文字高度
-                    If TypeOf entInblk Is IAcadText Then
-                        If aligmentStyle <> 0 Then entInblk.Alignment = aligmentStyle '改变文字对齐方式
-                    End If
+                    '                    If TypeOf entInblk Is IAcadText Then
+                    '                        If aligmentStyle <> 0 Then entInblk.Alignment = aligmentStyle '改变文字对齐方式
+                    '                    End If
                 End If
             End If
         End If
