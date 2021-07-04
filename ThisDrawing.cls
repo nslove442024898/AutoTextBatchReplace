@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Public Sub Main()
-    UserForm1.show vbModal
+    UserForm1.show vbModeless
 End Sub
 
 ' Excel macro to export all VBA source code in this project to text files for proper source control versioning

@@ -6,7 +6,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1
    ClientTop       =   465
    ClientWidth     =   10425
    OleObjectBlob   =   "UserForm1.frx":0000
-   StartUpPosition =   3  '窗口缺省
+   StartUpPosition =   3  'Windows Default
 End
 Attribute VB_Name = "UserForm1"
 Attribute VB_GlobalNameSpace = False
@@ -21,36 +21,13 @@ Const tempSelectFileListName As String = "TemplateSelectFileList.csv"
 'Public curReplaceFileIndex As Long
 Private Sub btnAddFile_Click()
     Dim fl As Variant, i As Long, fls As Collection
-    '打开文件
-    '    https://forums.autodesk.com/t5/inventor-customization/folder-browser-needed-for-vba-7-64-bit/m-p/4365989#M45667
-    '    https://forums.augi.com/showthread.php?153961-VBA-Autocad-Office-64-bit-Open-File-dialog-box-using-comdlg32-dll
-    '    Dim ofd As New clsOpenSaveFileName
-    '    ' Open the Save as form through the windows api and allow the designer a chance to
-    '    ' select the save location and filename
-    '    Dim FileName As String
-    '    With ofd
-    '        .Filter = "AutoCAD Drawing FILES (*.dwg)" & Chr$(0) & "*.dwg"
-    '        .StartInDir = CurDir()
-    '        .Title = "Please select file to open"
-    '        .MultiSelect = True
-    '        .SelectedFilter = 1
-    '        .OwnerHwnd = Application.HWND
-    '    End With
-    '
-    '    FileName = ofd.ShowOpen()
-    '    ' Check to make sure user hasn't selected cancel or something else which will cause the
-    '    ' filename to report blank
-    '    If Len(FileName) < 1 Then
-    '        MsgBox ("Something has gone wrong, please try again.")
-    '        Exit Sub
-    '    End If
     
     Set fls = GetOpenFileName("AutoCAD", ".dwg", "", True)
     VBA.AppActivate Application.Caption
     If TypeName(fls) <> "Nothing" Then
         For i = 1 To fls.count
             If Not dictfls.Exists(fls.item(i)) Then
-                If Not win32Api.FileInUse(fls.item(i)) Then
+                If Not FileInUse(fls.item(i)) Then
                     dictfls.Add fls.item(i), 0
                     Me.ListBox1.AddItem fls.item(i)
                 Else
@@ -68,12 +45,15 @@ End Sub
 
 Private Sub btnBatchReplace_Click()
     
-    Dim i As Long, var As Variant, fl As String, icount As Long, layerctl As String, txtheight As Double 'aligment As AutoCAD.AcAlignment
+    Dim i As Long, var As Variant, fl As String, icount As Long, layerctl As String, txtheight As Double, 完全匹配 As Boolean, 替换块内文字 As Boolean
+    'aligment As AutoCAD.AcAlignment
     If Me.CheckBox2Layer Then layerctl = Me.txtBoxLayer Else layerctl = vbNullString
     If Me.CheckBox4TxtHeight Then txtheight = CDbl(Me.txtBoxHeight) Else txtheight = 0
+    If Me.CheckBox1完全匹配.Value Then 完全匹配 = True Else 完全匹配 = False
+    If Me.CheckBox5替换块内文字.Value Then 替换块内文字 = True Else 替换块内文字 = False
+    
     'If Me.CheckBox3Aligment Then aligment = CInt(Me.TextBox2) Else aligment = 0
     If Me.ListBox1.ListCount > 0 Then
-        
         If Me.txtOldStr.Text = vbNullString Or Me.TxtNewStr.Text = vbNullString Then
             Me.Label3 = "请输入需要替换的文字再点击批量替换按钮"
             Exit Sub
@@ -84,16 +64,16 @@ Private Sub btnBatchReplace_Click()
             DoEvents
             fl = Me.ListBox1.List(i)
             If Me.staticReplace = True Then
-                icount = ReplaceTextModule.替换文件内部文字主函数(fl, Me.txtOldStr.Text, Me.TxtNewStr.Text, False, layerctl, txtheight, Me.CheckBox1完全匹配.Value, _
-                    Me.CheckBox5替换块内文字.Value) ', Me.CheckBox6替换属性块内属性.Value)
+                icount = ReplaceTextModule.替换文件内部文字主函数(fl, Me.txtOldStr.Text, Me.TxtNewStr.Text, False, layerctl, txtheight, 0, 完全匹配, 替换块内文字)
+                '(fl, Me.txtOldStr.Text, Me.TxtNewStr.Text, False, layerctl, txtheight, 完全匹配, _
+                    'Me.CheckBox5替换块内文字.Value) ', Me.CheckBox6替换属性块内属性.Value)
             Else
-                icount = ReplaceTextModule.替换文件内部文字主函数(fl, Me.txtOldStr.Text, Me.TxtNewStr.Text, True, layerctl, txtheight, Me.CheckBox1完全匹配.Value, _
-                    Me.CheckBox5替换块内文字.Value) ', Me.CheckBox6替换属性块内属性.Value)
+                icount = ReplaceTextModule.替换文件内部文字主函数(fl, Me.txtOldStr.Text, Me.TxtNewStr.Text, True, layerctl, txtheight, 0, 完全匹配, 替换块内文字)
             End If
             If icount > 0 Then
                 Me.Label3 = "正在替换 " & fl & ",共 " & Me.ListBox1.ListCount & " 张图纸需要替换,正在替换第 " & i + 1 & " 张图纸,共替换 " & icount & " 个文字"
             Else
-                Me.Label3 = "当前图纸 " & fl & "内部找不到需要替换的文字"
+                MsgBox "当前图纸 " & fl & "内部找不到需要替换的文字", vbInformation + vbOKOnly
             End If
         Next
         Me.Label3 = "全部替换完成!"
@@ -144,7 +124,7 @@ Private Sub btnReadFileList_Click()
         Me.dictfls.RemoveAll
         For i = LBound(Arr) To UBound(Arr)
             If fso.FileExists(Arr(i)) Then
-                If win32Api.FileInUse(Arr(i)) Then
+                If FileInUse(Arr(i)) Then
                     Me.Label3 = "文件列表中 " & Chr(34) & Arr(i) & Chr(34) & " 文件读取失败,因为文件被占用,无法操作文件"
                 Else
                     Me.dictfls.Add Arr(i), 0
@@ -163,19 +143,19 @@ Private Sub btnReadFileList_Click()
 End Sub
 
 Private Sub btnsaveList_Click()
-    Dim fso As Object, var As Variant, ArrHelper As New BetterArray, col As New Collection, resArr As BetterArray
+    Dim fso As Object, dataFn As String, sr As Object, var As Variant
+    dataFn = Me.directory + "\" + tempSelectFileListName
     Set fso = CreateObject("Scripting.FileSystemObject")
-    If fso.FileExists(Me.directory + "\" + tempSelectFileListName) Then
-        For Each var In Me.dictfls.Keys()
-            col.Add var
+    If fso.FileExists(dataFn) Then
+        Set sr = fso.OpenTextFile(dataFn, ForWriting, False)
+        For Each var In Me.dictfls.Keys
+            sr.WriteLine var
         Next
-        Set resArr = ArrHelper.CopyFromCollection(col)
-        resArr.ToCSVFile Me.directory + "\" + tempSelectFileListName
-        MsgBox "成功保存文件列表"
-        Set resArr = Nothing
-        Set col = Nothing
+        sr.Close
+        Set sr = Nothing
+        Me.Label3 = "存取文件列表成功"
     Else
-        MsgBox "未找到保存的列表"
+        Me.Label3 = "未找到保存的列表"
     End If
     Set fso = Nothing
 End Sub
@@ -221,6 +201,14 @@ Private Sub CheckBox4TxtHeight_Click()
     End If
 End Sub
 
+
+Public Function FileInUse(sFileName) As Boolean
+    On Error Resume Next
+    Open sFileName For Binary Access Read Lock Read As #1
+    Close #1
+    FileInUse = IIf(Err.Number > 0, True, False)
+    On Error GoTo 0
+End Function
 
 Private Sub OpenDrawing_Click()
     If Me.OpenDrawing.Value Then
