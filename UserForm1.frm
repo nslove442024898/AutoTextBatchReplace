@@ -168,6 +168,10 @@ Private Sub OptionButton1_Click()
     End If
 End Sub
 
+Private Sub CheckBox1ÍêÈ«Æ¥Åä_Click()
+    
+End Sub
+
 Private Sub CheckBox2Layer_Click()
     If Me.CheckBox2Layer.Value Then
         Me.txtBoxLayer.Enabled = True
