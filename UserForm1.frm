@@ -6,13 +6,14 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1
    ClientTop       =   465
    ClientWidth     =   10425
    OleObjectBlob   =   "UserForm1.frx":0000
-   StartUpPosition =   3  'Windows Default
+   StartUpPosition =   3  '窗口缺省
 End
 Attribute VB_Name = "UserForm1"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 Public dictfls As Object
 Public directory As String
@@ -120,6 +121,7 @@ Private Sub btnReadFileList_Click()
         sr.Close
         Set sr = Nothing
         '
+        Dim 失败 As Boolean
         Me.ListBox1.Clear
         Me.dictfls.RemoveAll
         For i = LBound(Arr) To UBound(Arr)
@@ -132,32 +134,33 @@ Private Sub btnReadFileList_Click()
                 End If
             Else
                 Me.Label3 = "文件列表中 " & Chr(34) & Arr(i) & Chr(34) & " 文件读取失败,因为文件找不到!"
+                失败 = True
             End If
         Next
-        Me.Label3 = "成功读取文件列表"
+        If 失败 = False Then Me.Label3 = "成功读取文件列表"
     Else
         Me.Label3 = "未找到保存的列表"
     End If
     Set fso = Nothing
     
 End Sub
-
 Private Sub btnsaveList_Click()
-    Dim fso As Object, dataFn As String, sr As Object, var As Variant
-    dataFn = Me.directory + "\" + tempSelectFileListName
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    If fso.FileExists(dataFn) Then
-        Set sr = fso.OpenTextFile(dataFn, ForWriting, False)
+    If Me.ListBox1.ListCount > 0 Then
+        Dim fso As Object, dataFn As String, sr As Object, var As Variant
+        dataFn = Me.directory + "\" + tempSelectFileListName
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        If fso.FileExists(dataFn) Then Set sr = fso.OpenTextFile(dataFn, ForWriting, False) Else Set sr = fso.CreateTextFile(dataFn, True, False)
         For Each var In Me.dictfls.Keys
             sr.WriteLine var
         Next
+        
         sr.Close
         Set sr = Nothing
         Me.Label3 = "存取文件列表成功"
+        Set fso = Nothing
     Else
-        Me.Label3 = "未找到保存的列表"
+        Me.Label3 = "存取文件列表失败,由于文件列表位空!"
     End If
-    Set fso = Nothing
 End Sub
 
 Private Sub OptionButton1_Click()
@@ -166,10 +169,6 @@ Private Sub OptionButton1_Click()
     Else
         Me.staticReplace.Value = True
     End If
-End Sub
-
-Private Sub CheckBox1完全匹配_Click()
-    
 End Sub
 
 Private Sub CheckBox2Layer_Click()
@@ -214,6 +213,10 @@ Public Function FileInUse(sFileName) As Boolean
     On Error GoTo 0
 End Function
 
+Private Sub ListBox1_Click()
+
+End Sub
+
 Private Sub OpenDrawing_Click()
     If Me.OpenDrawing.Value Then
         'Me.cmdGoHead.Enabled = True
@@ -244,7 +247,8 @@ End Sub
 
 Private Sub UserForm_Initialize()
     Set Me.dictfls = CreateObject("Scripting.Dictionary")
-    Dim fso As Object
+    Dim fso As FileSystemObject
+    'MsgBox CurDir
     Set fso = CreateObject("Scripting.FileSystemObject")
     directory = fso.GetParentFolderName(Application.VBE.ActiveVBProject.FileName) '获取当前DVB文件所在的文件夹地址
     Set fso = Nothing
