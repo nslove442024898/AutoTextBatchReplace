@@ -22,7 +22,6 @@ Const tempSelectFileListName As String = "TemplateSelectFileList.csv"
 'Public curReplaceFileIndex As Long
 Private Sub btnAddFile_Click()
     Dim fl As Variant, i As Long, fls As Collection
-    
     Set fls = GetOpenFileName("AutoCAD", ".dwg", "", True)
     VBA.AppActivate Application.Caption
     If TypeName(fls) <> "Nothing" Then
@@ -213,10 +212,6 @@ Public Function FileInUse(sFileName) As Boolean
     On Error GoTo 0
 End Function
 
-Private Sub ListBox1_Click()
-
-End Sub
-
 Private Sub OpenDrawing_Click()
     If Me.OpenDrawing.Value Then
         'Me.cmdGoHead.Enabled = True
@@ -247,11 +242,15 @@ End Sub
 
 Private Sub UserForm_Initialize()
     Set Me.dictfls = CreateObject("Scripting.Dictionary")
-    Dim fso As FileSystemObject
+    Dim fso As FileSystemObject, WshShell As Object
     'MsgBox CurDir
     Set fso = CreateObject("Scripting.FileSystemObject")
-    directory = fso.GetParentFolderName(Application.VBE.ActiveVBProject.FileName) '获取当前DVB文件所在的文件夹地址
-    Set fso = Nothing
+    
+    'https://docs.microsoft.com/zh-cn/previous-versions//0ea7b5xe(v=vs.85)?redirectedfrom=MSDN
+    Set WshShell = CreateObject("WScript.Shell")
+    directory = WshShell.SpecialFolders("MyDocuments")
+    Set fso = Nothing: Set WshShell = Nothing
+    
     Me.txtBoxHeight.Enabled = False: Me.txtBoxHeight.BackStyle = fmBackStyleTransparent
     Me.txtBoxLayer.Enabled = False: Me.txtBoxLayer.BackStyle = fmBackStyleTransparent
     'Me.TextBox2.Enabled = False: Me.TextBox2.BackStyle = fmBackStyleTransparent
@@ -272,19 +271,21 @@ End Sub
 Public Function GetOpenFileName(文件类型 As Variant, 后缀名称 As Variant, 标题 As Variant, 多选 As Boolean) As Collection
     Dim isNewStartExcel As Boolean, ExcelApp As Object, fns As New Collection, openfiles As Variant
     On Error Resume Next
-    '    Set ExcelApp = GetObject(, "Excel.Application")
-    '    If Err <> 0 Then
-    '        Err.Clear
     Set ExcelApp = CreateObject("Excel.Application")
     ExcelApp.Visible = False
     If Err <> 0 Then MsgBox "Could not start Excel!", vbExclamation
     isNewStartExcel = True
-    '    Else
-    '        isNewStartExcel = False
-    '    End If
+'    '
+'    Dim defualtPath As String ', WshShell As Object
+'    'Set WshShell = CreateObject("WScript.Shell")
+'    defualtPath = CurDir 'WshShell.SpecialFolders("Desktop")
+'    'Set WshShell = Nothing
+'    Dim drivename As String
+'    drivename = VBA.Left(defualtPath, 3)
+'    '默认打开的文件夹
+'    ChDrive drivename
+'    ChDir defualtPath '
     '
-    '    Set wbkobj = ExcelApp.Workbooks.Add
-    '    Set shtObj = wbkobj.Worksheets(1)
     openfiles = ExcelApp.GetOpenFileName(FileFilter:=(文件类型 & " (*" & 后缀名称 & "),*" & 后缀名称 & ", All Files (*.*),*.*"), Title:=标题, MultiSelect:=多选)
     If isNewStartExcel Then
         ExcelApp.Quit
